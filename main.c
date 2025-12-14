@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+Possiveis erros, cpf é salvo mesmo que numero de candidato é errado
+percentual divide por zero, validar antes
+nao pode entrar em resultado se nao tiver votacao
+salvar arquivos nao esta feito para recarregar dados
+retorno na validacao de cpf , valores sao iguais e mensagem n fica clara
+*/
+
 typedef struct {
     int numero;
     char nome[50];
@@ -16,6 +24,7 @@ typedef struct {
 int contadorCandidatos = 0;
 int contadorVotos = 0;
 
+void listaMenu();
 void cadastrarCandidato(Canditato *c);
 void listarCandidato(Canditato *c);
 int ControleVotos(ControleVoto *c);
@@ -28,9 +37,8 @@ void carregarArquivoCandidatos(Canditato *c);
 void carregarArquivoVotos(ControleVoto *v, Canditato *c);
 
 int main() {
-    
     Canditato candidatos[30];
-    ControleVoto votos[100];
+    ControleVoto votos[1000];
     int op; 
     char buffer[50];
 
@@ -40,13 +48,7 @@ int main() {
 
     do
     {
-        printf("**** Menu de Opcoes ****\n");
-        printf("1 - Cadastrar Candidato\n");    
-        printf("2 - Listar Candidatos\n");
-        printf("3 - Realizar voto\n");
-        printf("4 - Resultado eleicao\n");
-        printf("5 - Sair\n");
-        printf("Digite a opcao desejada: \n");
+        listaMenu();
 
         fgets(buffer, sizeof(buffer), stdin);
         op = (int)strtol(buffer, NULL, 10);
@@ -59,7 +61,7 @@ int main() {
             break;
 
         case 2:
-            printf("**** Candidatos ****\n");
+            printf("---- Candidatos ----\n");
             for(int i = 0; i < contadorCandidatos; i++) {
                 listarCandidato(&candidatos[i]);
             }
@@ -92,21 +94,33 @@ int main() {
             }
         
         case 4:
-            printf("**** RESULTADO DA ELEICAO ****\n");
+            printf("---- RESULTADO DA ELEICAO ----\n");
             ordenarPorVoto(candidatos, contadorCandidatos);
             mostrarResultados(candidatos, contadorCandidatos, contadorVotos);
             break;
 
         case 5:
-            printf("Saindo...\n");
+            printf("Saindo do sistema.\n");
             break;
 
         default:
+            printf("Opcao invalida, tente novamente.");
             break;
         }
     } while (op != 5);
     
     return 0;
+}
+
+void listaMenu() {
+    printf("#### SISTEMA VOTACAO ELETRONICA ####\n");
+    printf("---- Menu de Opcoes ----\n");
+    printf("1 - Cadastrar Candidato\n");    
+    printf("2 - Listar Candidatos\n");
+    printf("3 - Realizar voto\n");
+    printf("4 - Resultado eleicao\n");
+    printf("5 - Sair\n");
+    printf("Digite a opcao desejada: \n");
 }
 
 void cadastrarCandidato(Canditato *c) { 
@@ -116,12 +130,30 @@ void cadastrarCandidato(Canditato *c) {
     }
 
     char buffer[50];
+    char *endptr; //para verificar se ano é numero.
 
-    printf("**** Cadastro de Candidato\n");
-    printf("Digite o numero: \n");
-    fgets(buffer, sizeof(buffer), stdin);
-    c[contadorCandidatos].numero = (int)strtol(buffer, NULL, 10);
+    printf("---- Cadastro de Candidato ----\n");
+    do {
+        printf("Digite o numero: \n");
+        fgets(buffer, sizeof(buffer), stdin);
+        c[contadorCandidatos].numero = (int)strtol(buffer, &endptr, 10);
 
+        if (*endptr != '\n' && *endptr != '\0') {
+            printf("ERRO: Digite apenas numeros!\n");
+        }
+
+        if (ProcuraCandidato(c, contadorCandidatos, c[contadorCandidatos].numero) != -1) {
+            printf("ERRO: Numero ja cadastrado! Digite outro numero.\n");
+            *endptr = 'a'; //força repetição do loop
+        }
+
+        if (c[contadorCandidatos].numero <= 0 || c[contadorCandidatos].numero > 99) {
+            printf("ERRO: Numero invalido! Digite um numero positivo.\n");
+            *endptr = 'a'; //força repetição do loop
+        }
+
+    } while (*endptr != '\n' && *endptr != '\0');
+    
     printf("Digite o nome: \n");
     fgets(c[contadorCandidatos].nome, sizeof(c[contadorCandidatos].nome), stdin);
     c[contadorCandidatos].nome[strcspn(c[contadorCandidatos].nome, "\n")] = '\0';  
@@ -147,7 +179,7 @@ int ControleVotos(ControleVoto *c) {
     char buffer[50];
     int numero;
 
-    printf("**** Votacao ****\n");
+    printf("---- Votacao ----\n");
     printf("Digite seu cpf: \n");
     fgets(buffer, sizeof(buffer), stdin);
     buffer[strcspn(buffer, "\n")] = '\0'; 
@@ -160,6 +192,20 @@ int ControleVotos(ControleVoto *c) {
             {
                 return -1;
             }
+        }
+    }
+
+    //valida input cpf, garantindo 11 digitos numericos
+
+    if(strlen(buffer) != 11) {
+        printf("Cpf deve ter 11 digitos, tente novamente.\n");
+        return -1;
+    }
+
+    for(int i = 0; i < 11; i++) {
+        if(buffer[i] < '0' || buffer[i] > '9') {
+            printf("Cpf deve ser apenas numeros, tente novamente.\n");
+             return -1;
         }
     }
 
@@ -283,7 +329,7 @@ void carregarArquivoVotos(ControleVoto *v, Canditato *c) {
     FILE *arquivo = fopen("votos.txt", "r");
     if(arquivo)
     {
-        // Implementar leitura dos votos do arquivo
+        // Implementaar leitura dos votos do arquivo
         fclose(arquivo);
         printf("Votos carregados do arquivo!\n");
     }
