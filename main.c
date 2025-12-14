@@ -17,7 +17,7 @@ typedef struct {
 
 typedef struct {
     char cpf[12]; // CPF sem formatação (11 dígitos + \0)
-    int ja_votou; // 1 = já votou, 0 = não votou
+    //int ja_votou; 
 } ControleVoto;
 
 int contadorCandidatos = 0;
@@ -55,8 +55,8 @@ int main() {
             break;
 
         case 2:
+            printf("**** Candidatos ****\n");
             for(int i = 0; i < contadorCandidatos; i++) {
-                printf("**** Candidatos ****\n");
                 listarCandidato(&candidatos[i]);
             }
             break;
@@ -64,7 +64,7 @@ int main() {
         case 3:
             {
                 //procurar pelo numero e atribuir 1 voto
-                int voto, tamanho, indice;
+                int voto, indice;
                 voto = ControleVotos(votos);
 
                 if(voto == -1) {
@@ -74,9 +74,7 @@ int main() {
 
                 contadorVotos++;
 
-                tamanho = sizeof(candidatos) / sizeof(candidatos[0]);
-                ordenar (candidatos);
-                indice = ProcuraCandidato(candidatos, tamanho, voto);
+                indice = ProcuraCandidato(candidatos, contadorCandidatos, voto);
 
                 if(indice == -1){
                     printf("Candidato nao encontrado.\n");
@@ -84,6 +82,8 @@ int main() {
                     printf("Voto atribuido com sucesso.\n");
                     candidatos[indice].votos++;
                 }
+
+                break;
             }
         
         case 4:
@@ -136,67 +136,37 @@ int ControleVotos(ControleVoto *c) {
 
     printf("**** Votacao ****\n");
     printf("Digite seu cpf: \n");
-    fgets(c[contadorVotos].cpf, sizeof(c[contadorVotos].cpf), stdin);
-    c[contadorVotos].cpf[strcspn(c[contadorVotos].cpf, "\n")] = '\0';  
+    fgets(buffer, sizeof(buffer), stdin);
+    buffer[strcspn(buffer, "\n")] = '\0'; 
 
     //confere se cpf ja foi utilizado
-    //talvez posso fazer essa conferencia apenas uma vez no switch..
     if(contadorVotos >= 1) {
         for (int i = 0; i < contadorVotos; i++)
         {
-            if(strcmp(c[contadorVotos].cpf, c[i].cpf) == 0)
+            if(strcmp(buffer, c[i].cpf) == 0)
             {
-                c[contadorVotos].ja_votou = 1; // sim
                 return -1;
-            } else {
-                c[contadorVotos].ja_votou = 0;
-                printf("Digite o numero do candidato: \n");
-                fgets(buffer, sizeof(buffer), stdin);
-                numero = (int)strtol(buffer, NULL, 10);
             }
         }
     }
+
+    strcpy(c[contadorVotos].cpf, buffer);
+
+    printf("Digite o numero do candidato: \n");
+    fgets(buffer, sizeof(buffer), stdin);
+    numero = (int)strtol(buffer, NULL, 10);
 
     return numero;
 }
 
 int ProcuraCandidato(Canditato *c, int tamanho, int numero) {
-    int inicio = 0;
-	int fim = tamanho - 1;
-	
-	while (inicio <= fim) {
-		int meio = (inicio + fim) / 2;
-		
-		if (c[meio].numero == numero) {
-			return meio; // posicao do candidato encontrado
-		}
-		else if (c[meio].numero < numero) {
-			inicio = meio + 1;
-		}
-		else {
-			fim = meio - 1;
-		}
-	}
+    for(int i = 0; i < tamanho; i++) {
+        if(numero == c[i].numero){
+            return i;
+        } 
+    }
 
 	return -1; // elemento não encontrado	
 }
 
-void ordenar (Canditato *c) {
-    int passagem;
-    int i;
-    int auxiliar;
 
-    /* bubble sort */
-    for (passagem = 1; passagem < contadorCandidatos; passagem++)
-    {
-        for( i = 0; i < contadorCandidatos - 1; i++)
-        {
-            if(c[i].numero > c[i + 1].numero)
-            {
-                auxiliar = c[i].numero;
-                c[i].numero = c[i + 1].numero;
-                c[i + 1].numero = auxiliar;
-            }
-        }
-    }
-}
