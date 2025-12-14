@@ -2,12 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
-Se a função espera T*, passe algo que já seja um endereço de T
-Arrays já são endereços
-Use & só quando a variável NÃO for ponteiro
-*/
-
 typedef struct {
     int numero;
     char nome[50];
@@ -17,7 +11,6 @@ typedef struct {
 
 typedef struct {
     char cpf[12]; // CPF sem formatação (11 dígitos + \0)
-    //int ja_votou; 
 } ControleVoto;
 
 int contadorCandidatos = 0;
@@ -27,7 +20,8 @@ void cadastrarCandidato(Canditato *c);
 void listarCandidato(Canditato *c);
 int ControleVotos(ControleVoto *c);
 int ProcuraCandidato(Canditato *c, int tamanho, int numero);
-void ordenar (Canditato *c);
+void mostrarResultados(Canditato *c, int qtdCand, int qtdVotos);
+void ordenarPorVoto(Canditato *c, int qtdCand);
 
 int main() {
     
@@ -42,7 +36,8 @@ int main() {
         printf("1 - Cadastrar Candidato\n");    
         printf("2 - Listar Candidatos\n");
         printf("3 - Realizar voto\n");
-        printf("4 - Sair\n");
+        printf("4 - Resultado eleicao\n");
+        printf("5 - Sair\n");
         printf("Digite a opcao desejada: \n");
 
         fgets(buffer, sizeof(buffer), stdin);
@@ -72,14 +67,13 @@ int main() {
                     break;
                 }
 
-                contadorVotos++;
-
                 indice = ProcuraCandidato(candidatos, contadorCandidatos, voto);
 
                 if(indice == -1){
                     printf("Candidato nao encontrado.\n");
                 } else {
                     printf("Voto atribuido com sucesso.\n");
+                    contadorVotos++;
                     candidatos[indice].votos++;
                 }
 
@@ -87,13 +81,19 @@ int main() {
             }
         
         case 4:
+            printf("**** RESULTADO DA ELEICAO ****\n");
+            ordenarPorVoto(candidatos, contadorCandidatos);
+            mostrarResultados(candidatos, contadorCandidatos, contadorVotos);
+            break;
+
+        case 5:
             printf("Saindo...\n");
             break;
 
         default:
             break;
         }
-    } while (op != 4);
+    } while (op != 5);
     
     return 0;
 }
@@ -118,6 +118,8 @@ void cadastrarCandidato(Canditato *c) {
     printf("Digite o partido: \n");
     fgets(c[contadorCandidatos].partido, sizeof(c[contadorCandidatos].partido), stdin);
     c[contadorCandidatos].partido[strcspn(c[contadorCandidatos].partido, "\n")] = '\0'; 
+
+    c[contadorCandidatos].votos = 0;
 
     printf("Candidato adicionado com sucesso!\n");
 
@@ -169,4 +171,33 @@ int ProcuraCandidato(Canditato *c, int tamanho, int numero) {
 	return -1; // elemento não encontrado	
 }
 
+void mostrarResultados(Canditato *c, int qtdCand, int qtdVotos) {
+    float percentual;
+    
+    for(int i = 0; i < qtdCand; i++) {
+        percentual = (float)c[i].votos / qtdVotos;
+        printf("1 - [%d] %s: %d votos (%.0f%%)\n", c[i].numero, c[i].nome, c[i].votos, percentual * 100);
+    }
 
+    printf("Total de votos: %d\n", qtdVotos);
+}
+
+void ordenarPorVoto(Canditato *c, int qtdCand) {
+    int pass;
+    int i;
+    Canditato temp;
+
+    /* bubble sort invertido*/
+    for ( pass = 1; pass < qtdCand; pass++ )
+    {
+        for( i = 0; i < qtdCand - 1; i++)
+        {
+            if( c[i].votos < c[i + 1].votos )
+            {
+                temp = c[ i ];
+                c[ i ] = c[ i + 1 ];
+                c[ i + 1 ] = temp;
+            }
+        }
+    }
+}
