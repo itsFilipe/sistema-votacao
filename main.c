@@ -22,6 +22,10 @@ int ControleVotos(ControleVoto *c);
 int ProcuraCandidato(Canditato *c, int tamanho, int numero);
 void mostrarResultados(Canditato *c, int qtdCand, int qtdVotos);
 void ordenarPorVoto(Canditato *c, int qtdCand);
+void salvarArquivoCandidatos(Canditato *c, int qtdCand);
+void salvarArquivoVotos(ControleVoto *v, Canditato *c, int qtdVotos, int qtdCand);
+void carregarArquivoCandidatos(Canditato *c);
+void carregarArquivoVotos(ControleVoto *v, Canditato *c);
 
 int main() {
     
@@ -29,6 +33,10 @@ int main() {
     ControleVoto votos[100];
     int op; 
     char buffer[50];
+
+    //inicia sistema e carrega dados de arquivos, se existirem
+    carregarArquivoCandidatos(candidatos);
+    carregarArquivoVotos(votos, candidatos);
 
     do
     {
@@ -47,6 +55,7 @@ int main() {
         {
         case 1:
             cadastrarCandidato(candidatos);
+            salvarArquivoCandidatos(candidatos, contadorCandidatos);
             break;
 
         case 2:
@@ -75,6 +84,8 @@ int main() {
                     printf("Voto atribuido com sucesso.\n");
                     contadorVotos++;
                     candidatos[indice].votos++;
+                    ordenarPorVoto(candidatos, contadorCandidatos);
+                    salvarArquivoVotos(votos, candidatos, contadorVotos, contadorCandidatos);
                 }
 
                 break;
@@ -176,7 +187,7 @@ void mostrarResultados(Canditato *c, int qtdCand, int qtdVotos) {
     
     for(int i = 0; i < qtdCand; i++) {
         percentual = (float)c[i].votos / qtdVotos;
-        printf("1 - [%d] %s: %d votos (%.0f%%)\n", c[i].numero, c[i].nome, c[i].votos, percentual * 100);
+        printf("%d - [%d] %s: %d votos (%.0f%%)\n", i + 1, c[i].numero, c[i].nome, c[i].votos, percentual * 100);
     }
 
     printf("Total de votos: %d\n", qtdVotos);
@@ -199,5 +210,85 @@ void ordenarPorVoto(Canditato *c, int qtdCand) {
                 c[ i + 1 ] = temp;
             }
         }
+    }
+}
+
+void salvarArquivoCandidatos(Canditato *c, int qtdCand) {
+    FILE *arquivo = fopen("candidatos.txt", "w");
+    if(arquivo)
+    {
+        for (int i = 0; i < qtdCand; i++)
+        {
+            fprintf(arquivo,"[%d] %s - %s\n", c[i].numero, c[i].nome, c[i].partido);
+        }
+        
+        fprintf(arquivo, "----------------------------\n");
+
+        fclose(arquivo);
+        printf("Todos os candidatos foram salvos no arquivo!\n");
+    }
+    else
+    {
+        printf("ERRO: nao foi possivel abrir o arquivo.\n");
+    }
+}
+
+void salvarArquivoVotos(ControleVoto *v, Canditato *c, int qtdVotos, int qtdCand) {
+    FILE *arquivo = fopen("votos.txt", "w");
+
+    float percentual;
+
+    if(arquivo)
+    {   
+        fprintf(arquivo,"Cpfs que ja votaram:\n");
+        for (int i = 0; i < qtdVotos; i++)
+        {
+            fprintf(arquivo,"%s\n", v[i].cpf);
+            fprintf(arquivo, "----------------------------\n");
+        }
+
+        fprintf(arquivo,"Votos por candidatos:\n");
+        for (int i = 0; i < qtdCand; i++)
+        {
+            percentual = (float)c[i].votos / qtdVotos;
+            fprintf(arquivo,"%d - [%d] %s: %d votos (%.0f%%)\n", i + 1, c[i].numero, c[i].nome, c[i].votos, percentual * 100);
+            fprintf(arquivo, "Total de votos: %d\n", qtdVotos);
+            fprintf(arquivo, "----------------------------\n");
+        }
+        
+        fclose(arquivo);
+        printf("Todos os votos foram salvos no arquivo!\n");
+    }
+    else
+    {
+        printf("ERRO: nao foi possivel abrir o arquivo.\n");
+    }
+}
+
+void carregarArquivoCandidatos(Canditato *c) {
+    FILE *arquivo = fopen("candidatos.txt", "r");
+    if(arquivo)
+    {
+        // Implementar leitura dos candidatos do arquivo
+        fclose(arquivo);
+        printf("Candidatos carregados do arquivo!\n");
+    }
+    else
+    {
+        printf("Nenhum arquivo de candidatos encontrado. Iniciando com lista vazia.\n");
+    }
+}
+
+void carregarArquivoVotos(ControleVoto *v, Canditato *c) {
+    FILE *arquivo = fopen("votos.txt", "r");
+    if(arquivo)
+    {
+        // Implementar leitura dos votos do arquivo
+        fclose(arquivo);
+        printf("Votos carregados do arquivo!\n");
+    }
+    else
+    {
+        printf("Nenhum arquivo de votos encontrado. Iniciando com lista vazia.\n");
     }
 }
