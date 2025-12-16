@@ -8,7 +8,6 @@
 #define ARQUIVO_CANDIDATOS "candidatos.csv" // Mudança para .csv para indicar estrutura
 #define ARQUIVO_VOTOS "votos.txt"
 
-// Correção do typo: Canditato -> Candidato
 typedef struct {
     int numero;
     char nome[50];
@@ -106,7 +105,7 @@ int main() {
 }
 
 void listaMenu() {
-    printf("\n#### SISTEMA VOTACAO V2.0 (Engenharia) ####\n");
+    printf("\n#### SISTEMA VOTACAO ####\n");
     printf("1 - Cadastrar Candidato\n");    
     printf("2 - Listar Candidatos\n");
     printf("3 - Realizar voto\n");
@@ -321,3 +320,29 @@ void carregarDados(Candidato *c, int *qtdCand, ControleVoto *v, int *qtdVotos) {
         printf(">> Sistema: %d votos carregados.\n", *qtdVotos);
     }
 }
+
+// --- AREA DE ESTUDO: FUNÇÃO DE PERSISTÊNCIA ROBUSTA (APPEND) ---
+/*
+void registrarVotoSeguroEmDisco(char *cpf) {
+    // ESTUDO: O modo "a" (append) abre o arquivo e posiciona o cursor no FINAL.
+    // Se o arquivo não existir, ele cria. Se existir, ele adiciona sem apagar o anterior.
+    
+    FILE *f = fopen(ARQUIVO_VOTOS, "a"); 
+    
+    if (f == NULL) {
+        printf("ERRO CRITICO: Falha ao abrir disco para logar voto.\n");
+        return; 
+    }
+
+    // Escreve apenas o CPF e quebra linha.
+    // Vantagem: Operação O(1) - Tempo constante, independente do tamanho do arquivo.
+    fprintf(f, "%s\n", cpf);
+    
+    // ESTUDO: fflush força o sistema operacional a tirar o dado do buffer da RAM 
+    // e escrever fisicamente no disco AGORA. Essencial para sistemas críticos 
+    // onde a energia pode cair milissegundos depois.
+    fflush(f); 
+    
+    fclose(f);
+}
+*/
