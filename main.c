@@ -95,8 +95,12 @@ int main() {
             printf(">> Opcao invalida.\n");
             break;
         }
+        /*
         printf("\nPressione ENTER para continuar...");
-        getchar(); // Pausa UX
+        getchar();
+        comentando para testes
+        */
+         // Pausa UX
         // system("clear || cls"); // Opcional: limpar tela
 
     } while (op != 5);
